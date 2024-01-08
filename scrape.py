@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 import time
 
-dubizzle_base_url = 'https://uae.dubizzle.com/motors/used-cars'
+dubizzle_base_url = 'https://uae.dubizzle.com'
 chrome_url = 'C:\Development\chromedriver.exe'
 
 # Get user's input and store them within variables
@@ -20,7 +20,7 @@ kilos2 = '100000'
 
 features = [make, model]
 
-dubizzle_url = dubizzle_base_url
+dubizzle_url = dubizzle_base_url + '/motors/used-cars'
 
 for feature in features:
     if feature != '':
@@ -70,25 +70,35 @@ for car_div in car_listing_divs:
 
     make_element = car_div.find('div', {'data-testid': 'heading-text-1'})
     model_element = car_div.find('div', {'data-testid': 'heading-text-2'})
-    
-    # Find the location element without specifying a class name
+
+    features_element = car_div.find('h2', {'data-testid': 'subheading-text'})
+    url_element = car_div.find('a', {'class': 'sc-tagGq sc-esYiGF wjsGY cocqIi'})
+    # Find the location element using their unique class name
     location_element = car_div.find('div', {'class': 'sc-dZoequ lcDjpD'})
 
     # Extract text content from the found elements
     price = price_element.get_text() if price_element else 'N/A'
     year = year_element.get_text() if year_element else 'N/A'
     kilometers = kilometers_element.get_text() if kilometers_element else 'N/A'
+    features = features_element.get_text() if features_element else 'N/A'
     location = location_element.get_text() if location_element else 'N/A'
     product_make = make_element.get_text() if make_element else 'N/A'
     product_model = model_element.get_text() if model_element else 'N/A'
+
+    #due to how url is presented, dubizzle_base_url had to be changed in order to reuse it.
+    url = url_element.get('href') if url_element else 'N/A'
 
     # Print the extracted information
 
     print(f'{year} {product_make} {product_model}')
     print(f'Price: {price}')
-    print(f'Year: {year}')
-    print(f'Kilometers: {kilometers}')
+    # print(f'Year: {year}')
+    print(f'Mileage: {kilometers}')
+    print(f'Features: {features}')
     print(f'Location: {location}')
+
+    # new dubizzle_base_url is used here
+    print(f'Check it Out: {dubizzle_base_url}{url}')
     print('-' * 50)
 
 # Close the browser
