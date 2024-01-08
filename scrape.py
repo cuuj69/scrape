@@ -59,7 +59,7 @@ page_source = driver.page_source
 # Parse the HTML using BeautifulSoup
 soup = BeautifulSoup(page_source, 'html.parser')
 
-# Find all divs that contain relevant information based on the presence of certain elements
+# Find all divs that contain relevant information based on their unique div class name
 car_listing_divs = soup.find_all('div', {'class': 'lpv-card-appear-done lpv-card-enter-done'})
 
 for car_div in car_listing_divs:
@@ -67,17 +67,24 @@ for car_div in car_listing_divs:
     price_element = car_div.find('div', {'data-testid': 'listing-price'})
     year_element = car_div.find('div', {'data-testid': 'listing-year'})
     kilometers_element = car_div.find('div', {'data-testid': 'listing-kms'})
+
+    make_element = car_div.find('div', {'data-testid': 'heading-text-1'})
+    model_element = car_div.find('div', {'data-testid': 'heading-text-2'})
     
     # Find the location element without specifying a class name
-    location_element = '' #car_div.find('div')
+    location_element = car_div.find('div', {'class': 'sc-dZoequ lcDjpD'})
 
     # Extract text content from the found elements
     price = price_element.get_text() if price_element else 'N/A'
     year = year_element.get_text() if year_element else 'N/A'
     kilometers = kilometers_element.get_text() if kilometers_element else 'N/A'
     location = location_element.get_text() if location_element else 'N/A'
+    product_make = make_element.get_text() if make_element else 'N/A'
+    product_model = model_element.get_text() if model_element else 'N/A'
 
     # Print the extracted information
+
+    print(f'{year} {product_make} {product_model}')
     print(f'Price: {price}')
     print(f'Year: {year}')
     print(f'Kilometers: {kilometers}')
