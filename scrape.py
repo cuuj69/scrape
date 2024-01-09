@@ -73,7 +73,8 @@ pages = math.ceil(total_listings / 25)
 csv_headers = ['Name', 'Price', 'Mileage', 'Features', 'Location', 'Link', 'Picture1', 'Picture2', 'Picture3',
                'Picture4', 'Picture5', 'Picture6', 'Picture7', 'Picture8', 'Picture9', 'Picture10', 'Picture11',
                'Picture12', 'Picture13', 'Picture14', 'Picture15', 'Picture16', 'Picture17', 'Picture18', 'Picture19',
-               'Picture20', 'Picture21', 'Picture22', 'Picture23', 'Picture24', 'Picture25']
+               'Picture20', 'Picture21', 'Picture22', 'Picture23', 'Picture24', 'Picture25'
+               ]
 
 with open('results.csv', 'w', newline='', encoding='utf-8') as file:
     csv_writer = csv.writer(file)
