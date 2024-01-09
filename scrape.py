@@ -46,7 +46,7 @@ if filters[4] != '':
     dubizzle_url += f'&kilometers__gte={filters[4]}'
 
 # print(dubizzle_url)
-
+usable_url = dubizzle_url
 # Start a new browser session (make sure to have the appropriate driver installed, e.g., chromedriver)
 # driver = webdriver.Firefox() # this is your line for firefox enable it and disable the next line
 driver = webdriver.Chrome(service=Service(executable_path=chrome_url))
@@ -83,15 +83,15 @@ driver.quit()
 
 for page in range(0, pages + 1):
     if page == 0:
-        dubizzle_url = dubizzle_url
+        new_dubizzle_url = usable_url
     else:
-        dubizzle_url += f'&page={page}'
+        new_dubizzle_url = usable_url + f'&page={page}'
     # Start a new browser session (make sure to have the appropriate driver installed, e.g., chromedriver)
     # driver = webdriver.Firefox() # this is your line for firefox enable it and disable the next line
     driver = webdriver.Chrome(service=Service(executable_path=chrome_url))
-
+    print(new_dubizzle_url)
     # Navigate to the URL
-    driver.get(dubizzle_url)
+    driver.get(new_dubizzle_url)
     time.sleep(5)  # Allow time for the page to load, you might need to adjust this
 
     # Get the page source
