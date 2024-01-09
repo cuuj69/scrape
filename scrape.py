@@ -1,5 +1,5 @@
 import math
-
+import csv
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 import time
 
 dubizzle_base_url = 'https://uae.dubizzle.com'
-chrome_url = 'C:\Development\chromedriver.exe'
+chrome_url = r'C:\Development\chromedriver.exe'
 
 # Get user's input and store them within variables
 city = ''
@@ -45,7 +45,7 @@ if filters[3] != '':
 if filters[4] != '':
     dubizzle_url += f'&kilometers__gte={filters[4]}'
 
-print(dubizzle_url)
+# print(dubizzle_url)
 
 # Start a new browser session (make sure to have the appropriate driver installed, e.g., chromedriver)
 # driver = webdriver.Firefox() # this is your line for firefox enable it and disable the next line
@@ -67,11 +67,19 @@ total_listings_element = soup.find('span', {'class': 'sc-eTqNBC OMyRU'})
 total_listings_string = total_listings_element.get_text() if total_listings_element else 'N/A'
 total_listings = int(total_listings_string.split()[0])
 
-pages = math.ceil(total_listings/25)
+pages = math.ceil(total_listings / 25)
 
 # clear the results.txt before a new search.
-with open('results.txt', 'w') as file:
-    file.write('')
+csv_headers = ['Name', 'Price', 'Mileage', 'Features', 'Location', 'Link', 'Picture1', 'Picture2', 'Picture3',
+               'Picture4', 'Picture5', 'Picture6', 'Picture7', 'Picture8', 'Picture9', 'Picture10', 'Picture11',
+               'Picture12', 'Picture13', 'Picture14', 'Picture15', 'Picture16', 'Picture17', 'Picture18', 'Picture19',
+               'Picture20', 'Picture21', 'Picture22', 'Picture23', 'Picture24', 'Picture25']
+
+with open('results.csv', 'w', newline='', encoding='utf-8') as file:
+    csv_writer = csv.writer(file)
+    csv_writer.writerow(csv_headers)
+
+driver.quit()
 
 for page in range(0, pages + 1):
     if page == 0:
@@ -109,6 +117,15 @@ for page in range(0, pages + 1):
         # Find the location element using their unique class name
         location_element = car_div.find('div', {'class': 'sc-dZoequ lcDjpD'})
 
+        # Find images url
+        image_divs = car_div.find_all('img')
+
+        images = [img['src'] for img in image_divs]
+
+        # for div in image_divs:
+        #     images.append(div.get('src') if div else 'N/A')
+        # print(images)
+
         # Extract text content from the found elements
         price = price_element.get_text() if price_element else 'N/A'
         year = year_element.get_text() if year_element else 'N/A'
@@ -119,7 +136,15 @@ for page in range(0, pages + 1):
         product_model = model_element.get_text() if model_element else 'N/A'
 
         # due to how url is presented, dubizzle_base_url had to be changed in order to reuse it.
-        url = url_element.get('href') if url_element else 'N/A'
+        product_url = url_element.get('href') if url_element else 'N/A'
+
+        if images:
+            # Convert elements to strings and join them with commas
+            image_urls = images
+        else:
+            image_urls = 'N/A'
+
+        # print(image_urls)
 
         # Print the extracted information
         #
@@ -135,17 +160,26 @@ for page in range(0, pages + 1):
         # print('-' * 50)
 
         # preparing to write it to a txt file rather
-        information = ((f'{year} {product_make} {product_model}\nPrice: {price}\nMileage: {kilometers}\nFeatures: '
-                       f'{features}\nLocation: {location}\nCheck it Out: {dubizzle_base_url}{url}\n') + ('-' * 50) +
-                       '\n')
-        with open('results.txt', 'a+', encoding='utf-8') as file:
-            file.write(information)
+        # information = ((f'{year} {product_make} {product_model}\nPrice: {price}\nMileage: {kilometers}\nFeatures: '
+        #                f'{features}\nLocation: {location}\nCheck it Out: {dubizzle_base_url}{product_url}\n'
+        #                 f'Pictures: {image_urls}') + ('-' * 50) + '\n')
+
+        information = [
+            f'{year} {product_make} {product_model}',
+            f'{price}',
+            f'{kilometers}',
+            f'{features}', f'{location}',
+            f'{dubizzle_base_url}{product_url}'
+        ] + image_urls
+
+        with open('results.csv', 'a+', newline='', encoding='utf-8') as file:
+            csv_writer = csv.writer(file)
+            csv_writer.writerow(information)
 
     # indicate page number in the txt file
-    with open('results.txt', 'a+') as file:
-        file.write(f'Page {page}')
-    print(f'page {page} written')
+    # with open('results.txt', 'a+') as file:
+    #     file.write(f'Page {page}')
+    print(f'page {page + 1} written')
 
     # Close the browser
     driver.quit()
-
