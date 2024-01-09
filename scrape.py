@@ -120,11 +120,14 @@ for page in range(0, pages + 1):
         # Find images url
         image_divs = car_div.find_all('img')
 
-        images = [img['src'] for img in image_divs]
+        # Number of images
+        # use this number to remove other images that are not car images.
+        image_number_element = car_div.find('span', {'class': 'css-v1rqhp'})
+        image_number = int(image_number_element.text.strip())
 
-        # for div in image_divs:
-        #     images.append(div.get('src') if div else 'N/A')
-        # print(images)
+        images = [img['src'] for img in image_divs]
+        # reduce the list of images to exclude unwanted images
+        images = images[:image_number]
 
         # Extract text content from the found elements
         price = price_element.get_text() if price_element else 'N/A'
@@ -142,9 +145,7 @@ for page in range(0, pages + 1):
             # Convert elements to strings and join them with commas
             image_urls = images
         else:
-            image_urls = 'N/A'
-
-        # print(image_urls)
+            image_urls = []
 
         # Print the extracted information
         #
@@ -179,6 +180,7 @@ for page in range(0, pages + 1):
     # indicate page number in the txt file
     # with open('results.txt', 'a+') as file:
     #     file.write(f'Page {page}')
+
     print(f'page {page + 1} written')
 
     # Close the browser
