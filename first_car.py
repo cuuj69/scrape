@@ -65,8 +65,8 @@ soup = BeautifulSoup(page_source, 'html.parser')
 # Fetch the number of results obtained and divide it by 25 items per page
 total_listings_element = soup.find('span', {'class': 'sc-eTqNBC OMyRU'})
 total_listings_string = total_listings_element.get_text() if total_listings_element else 'N/A'
-total_listings = int(total_listings_string.split()[0])
-
+total_listings = int(''.join(char for char in total_listings_string if char.isdigit()))
+print(total_listings)
 pages = math.ceil(total_listings / 25)
 
 # clear the results.txt before a new search.
@@ -82,8 +82,8 @@ with open('results.csv', 'w', newline='', encoding='utf-8') as file:
 
 driver.quit()
 
-for page in range(0, pages + 1):
-    if page == 0:
+for page in range(1, pages + 1):
+    if page == 1:
         new_dubizzle_url = usable_url
     else:
         new_dubizzle_url = usable_url + f'&page={page}'
@@ -100,10 +100,67 @@ for page in range(0, pages + 1):
 
     # Parse the HTML using BeautifulSoup
     soup = BeautifulSoup(page_source, 'html.parser')
-
+    # soup = BeautifulSoup(page_source, 'lxml')
+    # print(soup)
+# ------------------------------ FIRST CAR ------------------------------------------------------------
     # Find all divs that contain relevant information based on their unique div class name
-    first_car_div = soup.find('div', {'class': 'sc-bddgXz gfKgUY dbz-ads-listing'})
+    first_car_div = soup.find('div', {'class': 'sc-kdBSHD kZEvWp dbz-ads-listing'})
 
+    # Extract specific information from each car_div
+    price_element = first_car_div.find('div', {'data-testid': 'listing-price'})
+    year_element = first_car_div.find('div', {'data-testid': 'listing-year'})
+    kilometers_element = first_car_div.find('div', {'data-testid': 'listing-kms'})
+
+    make_element = first_car_div.find('div', {'data-testid': 'heading-text-1'})
+    model_element = first_car_div.find('div', {'data-testid': 'heading-text-2'})
+
+    features_element = first_car_div.find('h2', {'data-testid': 'subheading-text'})
+    url_element = first_car_div.find('a', {'class': 'sc-tagGq sc-esYiGF wjsGY cocqIi'})
+    # Find the location element using their unique class name
+    location_element = first_car_div.find('div', {'class': 'sc-dZoequ lcDjpD'})
+    # location_element = first_car_div.find(By.CLASS_NAME, '')
+    # Find images url
+    image_divs = first_car_div.find_all('div', {'class': 'sc-kzqdkY knYQNn'})
+
+    # Number of images
+    # Only 4 images live on the actual page. the rest of the images are available through the product url.
+    image_tags = [div.find('img') for div in image_divs]
+    images = [img['src'] for img in image_tags]
+
+    # Extract text content from the found elements
+    price = price_element.get_text() if price_element else 'N/A'
+    year = year_element.get_text() if year_element else 'N/A'
+    kilometers = kilometers_element.get_text() if kilometers_element else 'N/A'
+    features = features_element.get_text() if features_element else 'N/A'
+    location = location_element.get_text() if location_element else 'N/A'
+    product_make = make_element.get_text() if make_element else 'N/A'
+    product_model = model_element.get_text() if model_element else 'N/A'
+
+    # due to how url is presented, dubizzle_base_url had to be changed in order to reuse it.
+    product_url = url_element.get('href') if url_element else 'N/A'
+
+    information = []
+    if images:
+        # Convert elements to strings and join them with commas
+        image_urls = images
+    else:
+        image_urls = []
+
+        information = [
+                      f'{year} {product_make} {product_model}',
+                      f'{price}',
+                      f'{kilometers}',
+                      f'{features}', f'{location}',
+                      f'{dubizzle_base_url}{product_url}'
+                  ] + image_urls
+
+    with open('results.csv', 'a+', newline='', encoding='utf-8') as file:
+        csv_writer = csv.writer(file)
+        csv_writer.writerow(information)
+
+    print('first car printed')
+
+# -------------------------------------- OTHER CARS -------------------------------------------------
 
     car_listing_divs = soup.find_all('div', {'class': 'lpv-card-appear-done lpv-card-enter-done'})
 
@@ -151,41 +208,19 @@ for page in range(0, pages + 1):
         else:
             image_urls = []
 
-        # Print the extracted information
-        #
-        # print(f'{year} {product_make} {product_model}')
-        # print(f'Price: {price}')
-        # # print(f'Year: {year}')
-        # print(f'Mileage: {kilometers}')
-        # print(f'Features: {features}')
-        # print(f'Location: {location}')
-        #
-        # # new dubizzle_base_url is used here
-        # print(f'Check it Out: {dubizzle_base_url}{url}')
-        # print('-' * 50)
-
-        # preparing to write it to a txt file rather
-        # information = ((f'{year} {product_make} {product_model}\nPrice: {price}\nMileage: {kilometers}\nFeatures: '
-        #                f'{features}\nLocation: {location}\nCheck it Out: {dubizzle_base_url}{product_url}\n'
-        #                 f'Pictures: {image_urls}') + ('-' * 50) + '\n')
-
         information = [
-            f'{year} {product_make} {product_model}',
-            f'{price}',
-            f'{kilometers}',
-            f'{features}', f'{location}',
-            f'{dubizzle_base_url}{product_url}'
-        ] + image_urls
+                          f'{year} {product_make} {product_model}',
+                          f'{price}',
+                          f'{kilometers}',
+                          f'{features}', f'{location}',
+                          f'{dubizzle_base_url}{product_url}'
+                      ] + image_urls
 
         with open('results.csv', 'a+', newline='', encoding='utf-8') as file:
             csv_writer = csv.writer(file)
             csv_writer.writerow(information)
 
-    # indicate page number in the txt file
-    # with open('results.txt', 'a+') as file:
-    #     file.write(f'Page {page}')
-
-    print(f'page {page + 1} written')
+    print(f'page {page} written')
 
     # Close the browser
     driver.quit()
